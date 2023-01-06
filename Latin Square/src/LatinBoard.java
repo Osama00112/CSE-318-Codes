@@ -15,9 +15,7 @@ public class LatinBoard {
         unAssignedCells = new ArrayList<>();
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
-                cells[i][j] = new SquareCell(0);
-                cells[i][j].x = i;
-                cells[i][j].y = j;
+                cells[i][j] = new SquareCell(0,i,j);
             }
         }
 
@@ -38,26 +36,49 @@ public class LatinBoard {
 
     public void updateDomains(){ // Also populates unAssigned list
         for(int i=0; i<size; i++){
-            List<Integer> tempDomain = new ArrayList<>();
-//            for(int k=0; k<10; k++){
-//                tempDomain.add(i+1);
-//            }
             for(int j=0; j<size; j++){
                 if(cells[i][j].getValue() != 0){
                     int index = cells[i][j].getValue()-1;
-                    tempDomain.add(cells[i][j].getValue());
-                    //rowDomains[i][index] = '0';
+                    //tempDomain.add(cells[i][j].getValue());
                     rowDomains[i] = changeCh(rowDomains[i], index,  '0');
                     colDomains[j] = changeCh(colDomains[j], index, '0' );
-                }
-            }
-
-            for(int j=0; j<size; j++){
-                if(cells[i][j].getValue() == 0){
-                    cells[i][j].domain.removeAll(tempDomain);
+                }else{
                     unAssignedCells.add(cells[i][j]);
                 }
             }
+
+//            for(int j=0; j<size; j++){
+//                if(cells[i][j].getValue() == 0){
+//                    cells[i][j].domain.removeAll(tempDomain);
+//                    unAssignedCells.add(cells[i][j]);
+//                }
+//            }
+        }
+        updateCellDomains();
+    }
+
+    public void updateCellDomains(){
+        for(SquareCell sc: unAssignedCells){
+            List<Integer> tempDomain = new ArrayList<>();
+            //System.out.println("pos "+ sc.x + " " +sc.y +" row " + rowDomains[sc.x] + " col " + colDomains[sc.y]);
+            for(int i=0; i<size; i++){
+                if(! (rowDomains[sc.x].charAt(i) == colDomains[sc.y].charAt(i) && rowDomains[sc.x].charAt(i) == '1')){
+                    tempDomain.add(i+1); // value is 1 more than index
+                }
+            }
+            //System.out.println("temp size " + tempDomain.size());
+            sc.domain.removeAll(tempDomain);
+        }
+    }
+
+    public void updateCellDomains(SquareCell s){
+        List<Integer> temp = new ArrayList<>();
+        temp.add(s.x);
+        for(SquareCell sc: unAssignedCells){
+            if(sc.x == s.x || sc.y == s.y){
+                sc.domain.removeAll(temp);
+            }
+
         }
     }
     public void printDomains(){
@@ -116,7 +137,10 @@ public class LatinBoard {
         StringBuilder temp = new StringBuilder();
         for (int i=0; i<size; i++){
             for(int j=0; j<size; j++){
-                temp.append(cells[i][j].getValue()).append("  ");
+                if(cells[i][j].getValue() > 9){
+                    temp.append(cells[i][j].getValue()).append("  ");
+                }else
+                    temp.append(cells[i][j].getValue()).append("   ");
             }
             temp.append("\n");
         }

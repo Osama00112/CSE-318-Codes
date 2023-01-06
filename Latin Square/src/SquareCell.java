@@ -8,8 +8,10 @@ public class SquareCell {
     public int y;
     public List<Integer> domain;
 
-    public SquareCell(int value){
+    public SquareCell(int value, int x, int y){
         this.value = value;
+        this.x = x;
+        this.y = y;
         degree = 0;
         domain = new ArrayList<>();
         if(value == 0){
@@ -21,5 +23,8 @@ public class SquareCell {
 
     public int getValue(){
         return value;
+    }
+    public void setValue(int value){
+        this.value = value;
     }
 }
