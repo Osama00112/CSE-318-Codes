@@ -2,6 +2,7 @@ import java.util.*;
 
 public class LatinBoard {
     public int size;
+    public int method;
     public SquareCell[][] cells;
     public String[] rowDomains;
     public String[] colDomains;
@@ -93,6 +94,7 @@ public class LatinBoard {
     public List<SquareCell> updateCellDomains(int x, int y, int value){
         List<Integer> temp = new ArrayList<>();
         List<SquareCell> dummy = new ArrayList<>();
+        boolean nullDomainFound = false;
         temp.add(value);
         for(SquareCell sc: unAssignedCells){
             if(sc.x == x && sc.y == y)
@@ -100,10 +102,19 @@ public class LatinBoard {
             if(sc.x == x || sc.y == y){
                 if(sc.domain.contains(value)){
                     sc.domain.removeAll(temp);
+
+
                     dummy.add(sc);
                     sc.degree--;
                     if(sc.degree < 0)
                         System.out.println("degree cant be negative");
+                    if(sc.domain.size() == 0){
+                        if(method == 2) {
+                            DomainAffectedCells.addAll(dummy);
+                            revertCellDomains(value, dummy.size());
+                            return null;
+                        }
+                    }
                 }
             }
         }

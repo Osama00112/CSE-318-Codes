@@ -32,7 +32,7 @@ public class Main {
         //board.sortByDomainSize();
         //board.printDomainSizes();
 
-        Solver sv = new Solver(5, board);
+        Solver sv = new Solver(1,2, board);
         sv.backTrack();
         System.out.println("answer : \n" + sv.solvedBoard);
 
