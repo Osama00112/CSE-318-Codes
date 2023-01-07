@@ -6,6 +6,7 @@ public class LatinBoard {
     public String[] rowDomains;
     public String[] colDomains;
     public List<SquareCell> unAssignedCells;
+    public List<SquareCell> affectedCells;
 
     public LatinBoard(int size){
         this.size = size;
@@ -13,9 +14,10 @@ public class LatinBoard {
         rowDomains = new String[size];
         colDomains = new String[size];
         unAssignedCells = new ArrayList<>();
+        affectedCells = new ArrayList<>();
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
-                cells[i][j] = new SquareCell(0,i,j);
+                cells[i][j] = new SquareCell(0,i,j,size);
             }
         }
 
@@ -27,6 +29,26 @@ public class LatinBoard {
                 colDomains[i] += "1";
             }
         }
+    }
+    public LatinBoard(LatinBoard b){
+        this.size = b.size;
+        cells = new SquareCell[size][size];
+        rowDomains = new String[size];
+        colDomains = new String[size];
+        unAssignedCells = new ArrayList<>(b.unAssignedCells);
+        for(int i=0; i<size; i++){
+            for(int j=0; j<size; j++){
+                cells[i][j] = new SquareCell(b.cells[i][j].getValue(),i,j,size);
+                cells[i][j].domain = new ArrayList<>(b.cells[i][j].domain);
+                cells[i][j].degree = b.cells[i][j].degree;
+            }
+        }
+
+        for(int i=0; i<size; i++){
+            rowDomains[i] = b.rowDomains[i];
+            colDomains[i] = b.colDomains[i];
+        }
+        updateCellDomains();
     }
     public String changeCh(String st, int index, char ch){
         StringBuilder sb = new StringBuilder(st);
@@ -46,13 +68,6 @@ public class LatinBoard {
                     unAssignedCells.add(cells[i][j]);
                 }
             }
-
-//            for(int j=0; j<size; j++){
-//                if(cells[i][j].getValue() == 0){
-//                    cells[i][j].domain.removeAll(tempDomain);
-//                    unAssignedCells.add(cells[i][j]);
-//                }
-//            }
         }
         updateCellDomains();
     }
@@ -71,15 +86,47 @@ public class LatinBoard {
         }
     }
 
-    public void updateCellDomains(SquareCell s){
+    public List<SquareCell> updateCellDomains(int x, int y, int value){
         List<Integer> temp = new ArrayList<>();
-        temp.add(s.x);
+        List<SquareCell> dummy = new ArrayList<>();
+        temp.add(value);
         for(SquareCell sc: unAssignedCells){
-            if(sc.x == s.x || sc.y == s.y){
-                sc.domain.removeAll(temp);
+            if(sc.x == x && sc.y == y)
+                continue;
+            if(sc.x == x || sc.y == y){
+                if(sc.domain.contains(value)){
+                    sc.domain.removeAll(temp);
+                    dummy.add(sc);
+                    //affectedCells.add(cells[sc.x][sc.y]);
+                }
             }
 
         }
+        affectedCells.addAll(dummy);
+        //affectedCells = dummy;
+        //System.out.println(affectedCells.size());
+        return dummy;
+    }
+    public void revertCellDomains(int x, int y, int value, int count/*SquareCell s, List<SquareCell> affected*/){
+        /*System.out.println("affected cells "+affected.size());
+        unAssignedCells.removeAll(affected);
+        for(SquareCell sc: affectedCells){
+            //unAssignedCells
+            sc.domain.add(s.getValue());
+            //Collections.sort(sc.domain);
+        }
+        unAssignedCells.addAll(affected);
+        sortByDomainSize();
+        //affectedCells.clear();
+        */
+        int size = affectedCells.size();
+        List<SquareCell> temp = affectedCells.subList(size - count, size);
+        for(SquareCell sc:unAssignedCells){
+            if(temp.contains(sc)){
+                sc.domain.add(value);
+            }
+        }
+        affectedCells.subList(size - count, size).clear();
     }
     public void printDomains(){
         System.out.println("Row domains:");
@@ -101,6 +148,12 @@ public class LatinBoard {
     }
     public void sortByDomainSize(){
         unAssignedCells.sort(Comparator.comparingInt(c -> c.domain.size()));
+    }
+    public void sortByDegree(){
+        calculateDegree();
+        unAssignedCells.sort(Comparator.comparingInt(c -> -c.degree));
+//        for(SquareCell sc: unAssignedCells)
+//            System.out.println(sc.degree);
     }
     public void sortByVah1TiesByVah2(){
         calculateDegree();
@@ -128,10 +181,16 @@ public class LatinBoard {
             cell.degree = count;
         }
     }
-    public void sortByDegree(){
-        calculateDegree();
-        unAssignedCells.sort(Comparator.comparingInt(c -> c.degree));
+    public void updateDegree(SquareCell s){
+        for(SquareCell sc: unAssignedCells){
+            if(sc.x == s.x || sc.y ==s.y){
+                sc.degree--;
+                if(sc.degree < 0)
+                    System.out.println("degree cant be negative");
+            }
+        }
     }
+
     @Override
     public String toString(){
         StringBuilder temp = new StringBuilder();

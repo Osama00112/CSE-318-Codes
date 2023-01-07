@@ -12,6 +12,7 @@ public class Var_Heuristics {
         if(board.unAssignedCells.size() == 0)
             return -1;
         if(type == 1){
+            board.sortByDomainSize();
             return 0;
         }else if(type == 2){
             return 0;

@@ -2,7 +2,7 @@ import java.io.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        File file = new File("F:\\3-2\\Sessional\\CSE 318\\Latin Square\\src\\data\\4.txt");
+        File file = new File("F:\\3-2\\Sessional\\CSE 318\\Latin Square\\src\\data\\1.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
         st = br.readLine();
@@ -17,7 +17,7 @@ public class Main {
             String  []words = st.split(", ");
             int j=0;
             for(String s: words){
-                board.cells[i][j] = new SquareCell(Integer.parseInt(s), i, j);
+                board.cells[i][j] = new SquareCell(Integer.parseInt(s), i, j, size);
                 j++;
             }
         i++;
@@ -27,8 +27,8 @@ public class Main {
         //board.printDomainSizes();
         //board.printDomains();
         board.updateDomains();
-        board.printDomains();
-        board.sortByDomainSize();
+        //board.printDomains();
+        //board.sortByDomainSize();
         board.printDomainSizes();
 
         Solver sv = new Solver(1, board);
@@ -36,7 +36,9 @@ public class Main {
         System.out.println("answer : \n" + sv.solvedBoard);
 
         long end = System.currentTimeMillis();
-        System.out.println("Time elapsed " + (end-start) + " ms");
+        System.out.println("Time elapsed " + (end-start) + " ms\n" +
+                "Node Count:    " + sv.nodecount+"\n" +
+                "BT Node Count: " + sv.BTcount);
         //System.out.println(board);
 
             // Print the string
