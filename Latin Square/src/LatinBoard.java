@@ -6,7 +6,8 @@ public class LatinBoard {
     public String[] rowDomains;
     public String[] colDomains;
     public List<SquareCell> unAssignedCells;
-    public List<SquareCell> affectedCells;
+    public List<SquareCell> DomainAffectedCells;
+    public List<SquareCell> DegreeAffectedCells;
 
     public LatinBoard(int size){
         this.size = size;
@@ -14,7 +15,8 @@ public class LatinBoard {
         rowDomains = new String[size];
         colDomains = new String[size];
         unAssignedCells = new ArrayList<>();
-        affectedCells = new ArrayList<>();
+        DomainAffectedCells = new ArrayList<>();
+        DegreeAffectedCells = new ArrayList<>();
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
                 cells[i][j] = new SquareCell(0,i,j,size);
@@ -29,6 +31,8 @@ public class LatinBoard {
                 colDomains[i] += "1";
             }
         }
+        //updateDomains();
+        //calculateDegree();
     }
     public LatinBoard(LatinBoard b){
         this.size = b.size;
@@ -97,37 +101,54 @@ public class LatinBoard {
                 if(sc.domain.contains(value)){
                     sc.domain.removeAll(temp);
                     dummy.add(sc);
-                    //affectedCells.add(cells[sc.x][sc.y]);
+                    sc.degree--;
+                    if(sc.degree < 0)
+                        System.out.println("degree cant be negative");
                 }
             }
-
         }
-        affectedCells.addAll(dummy);
-        //affectedCells = dummy;
-        //System.out.println(affectedCells.size());
+        DomainAffectedCells.addAll(dummy);
         return dummy;
     }
-    public void revertCellDomains(int x, int y, int value, int count/*SquareCell s, List<SquareCell> affected*/){
-        /*System.out.println("affected cells "+affected.size());
-        unAssignedCells.removeAll(affected);
-        for(SquareCell sc: affectedCells){
-            //unAssignedCells
-            sc.domain.add(s.getValue());
-            //Collections.sort(sc.domain);
-        }
-        unAssignedCells.addAll(affected);
-        sortByDomainSize();
-        //affectedCells.clear();
-        */
-        int size = affectedCells.size();
-        List<SquareCell> temp = affectedCells.subList(size - count, size);
+    public void revertCellDomains(int value, int count){
+        int size = DomainAffectedCells.size();
+        List<SquareCell> temp = DomainAffectedCells.subList(size - count, size);
         for(SquareCell sc:unAssignedCells){
             if(temp.contains(sc)){
                 sc.domain.add(value);
+                sc.degree++;
             }
         }
-        affectedCells.subList(size - count, size).clear();
+        DomainAffectedCells.subList(size - count, size).clear();
     }
+//    public List<SquareCell> updateDegree(int x, int y, int value){
+//        List<SquareCell> dummy = new ArrayList<>();
+//
+//        for(SquareCell sc: unAssignedCells){
+//            if(sc.x == x && sc.y == y)
+//                continue;
+//            if(sc.x == x || sc.y == y){
+//                if(sc.domain.contains(value)){
+//                    sc.degree--;
+//                    if(sc.degree < 0)
+//                        System.out.println("degree cant be negative");
+//                }
+//            }
+//        }
+//        DegreeAffectedCells.addAll(dummy);
+//        return dummy;
+//    }
+//    public void revertDegreeChanges(int count){
+//        int size = DegreeAffectedCells.size();
+//        List<SquareCell> temp = DegreeAffectedCells.subList(size - count, size);
+//        for(SquareCell sc:unAssignedCells){
+//            if(temp.contains(sc)){
+//                sc.degree++;
+//            }
+//        }
+//        DegreeAffectedCells.subList(size - count, size).clear();
+//    }
+
     public void printDomains(){
         System.out.println("Row domains:");
         for(int i=0; i<size; i++)
@@ -150,13 +171,13 @@ public class LatinBoard {
         unAssignedCells.sort(Comparator.comparingInt(c -> c.domain.size()));
     }
     public void sortByDegree(){
-        calculateDegree();
+        //calculateDegree();
         unAssignedCells.sort(Comparator.comparingInt(c -> -c.degree));
 //        for(SquareCell sc: unAssignedCells)
 //            System.out.println(sc.degree);
     }
     public void sortByVah1TiesByVah2(){
-        calculateDegree();
+        //calculateDegree();
         unAssignedCells.sort((o1, o2) -> {
             int result = o1.domain.size() - o2.domain.size();
             if (result == 0) {
@@ -165,6 +186,13 @@ public class LatinBoard {
             return result;
         });
     }
+    public void sortByVah4(){
+        unAssignedCells.sort(Comparator.comparingInt(c -> (c.domain.size()/c.degree)));
+    }
+    public void sortByVah5(){
+        Collections.shuffle(unAssignedCells);
+    }
+
     public void calculateDegree(){
         for(SquareCell cell: unAssignedCells){
             int count = 0;
@@ -181,15 +209,7 @@ public class LatinBoard {
             cell.degree = count;
         }
     }
-    public void updateDegree(SquareCell s){
-        for(SquareCell sc: unAssignedCells){
-            if(sc.x == s.x || sc.y ==s.y){
-                sc.degree--;
-                if(sc.degree < 0)
-                    System.out.println("degree cant be negative");
-            }
-        }
-    }
+
 
     @Override
     public String toString(){

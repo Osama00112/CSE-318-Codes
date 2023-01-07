@@ -27,11 +27,12 @@ public class Main {
         //board.printDomainSizes();
         //board.printDomains();
         board.updateDomains();
+        board.calculateDegree();
         //board.printDomains();
         //board.sortByDomainSize();
-        board.printDomainSizes();
+        //board.printDomainSizes();
 
-        Solver sv = new Solver(1, board);
+        Solver sv = new Solver(5, board);
         sv.backTrack();
         System.out.println("answer : \n" + sv.solvedBoard);
 
