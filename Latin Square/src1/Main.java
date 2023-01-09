@@ -2,7 +2,7 @@ import java.io.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        File file = new File("F:\\3-2\\Sessional\\CSE 318\\Latin Square\\src\\data\\3.txt");
+        File file = new File("data/3.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
         st = br.readLine();
