@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ConstructiveHeuristics {
     private int type;
@@ -15,9 +12,14 @@ public class ConstructiveHeuristics {
     public List<Course> getMethod(){
         if(type == 1){
             LargestDegree();
-            return courseList;
+        }else if(type == 2){
+            SaturationDegree();
+        }else if(type == 3){
+            LargestEnrollment();
+        }else if(type == 4){
+            RandomOrdering();
         }
-        else return null;
+        return courseList;
     }
 
     public void LargestDegree(){
@@ -35,13 +37,52 @@ public class ConstructiveHeuristics {
         });
     }
     public void SaturationDegree(){
+        courseList.sort((o1, o2) -> {
+            int result = - o1.totalNeighbourColors + o2.totalNeighbourColors;
+            if (result == 0) {
+                int random = (int) Math.round(Math.random());
+                if(random == 0)
+                    return (- o1.totalNeighbourColors + o2.totalNeighbourColors);
+                else
+                    return (+ o1.totalNeighbourColors - o2.totalNeighbourColors);
+            }
+            return result;
+        });
 
     }
     public void LargestEnrollment(){
+        courseList.sort((o1, o2) -> {
+            int result = - o1.studentsEnrolled + o2.studentsEnrolled;
+            if (result == 0) {
+                int random = (int) Math.round(Math.random());
+                if(random == 0)
+                    return (- o1.studentsEnrolled + o2.studentsEnrolled);
+                else
+                    return (+ o1.studentsEnrolled - o2.studentsEnrolled);
+            }
+            return result;
+        });
 
     }
-    public void RandomOrdering(){
 
+    int getIndex(){
+        int maxTotal = 0;
+        int index = -1;
+        for(int i=0; i<courseList.size(); i++){
+            Course selected = courseList.get(i);
+            if(selected.timeSlot == -1){
+                if(selected.neighbourColors.size() >= maxTotal){
+                    maxTotal= selected.neighbourColors.size();
+                    index = i;
+                }
+            }
+        }
+
+        return index;
+    }
+
+    public void RandomOrdering(){
+        Collections.shuffle(courseList);
     }
 
 

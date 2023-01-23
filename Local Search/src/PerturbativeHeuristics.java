@@ -24,14 +24,11 @@ public class PerturbativeHeuristics {
         this.originalAvg = originalAvg;
         this.courseList = courseList;
         this.studentList = studentList;
-        this.newAvg = 0;
+        this.newAvg = originalAvg;
     }
     public void KempeChain(){
         int nodeCount = 0;
-        int tolalCourse = courseList.size();
-//        PenaltyCalculator calculator = new PenaltyCalculator(studentList, tempList, penType);
-//        double avg = calculator.getAvgPenalty();
-//        System.out.println("original avg " + avg);
+        int totalCourse = courseList.size();
         for(int i=0; i<1000; i++ ){
             nodeCount++;
             // random node
@@ -39,13 +36,12 @@ public class PerturbativeHeuristics {
             Course current;
             int randomNumber;
             while(true){
-                randomNumber = random.nextInt(courseList.size());
+                randomNumber = random.nextInt(totalCourse);
                 current = tempList.get(randomNumber);
                 if(current.conflictCount() != 0)
                     break;
             }
             int parentTimeSlot = current.timeSlot;
-            //visited[randomNumber] = 1;
 
             // random child
             List<Integer> tempIntList = new ArrayList<>(current.conflictingCourses);
@@ -53,63 +49,39 @@ public class PerturbativeHeuristics {
             int childID = tempIntList.get(randomNumber);
             Course child = tempList.get(childID);
             int RandomChildTimeSlot = child.timeSlot;
-            //visited[childID] = 1;
-            //System.out.println("current " + current.timeSlot + " child " +  child.timeSlot/* + " 1st id " + tempList.get(0).id*/);
-
-            // initial swap
-//            int temp = current.timeSlot;
-//            current.timeSlot = child.timeSlot;
-//            child.timeSlot = temp;
 
             dfs(current,RandomChildTimeSlot);
 
-
-
-            for(int j=0; j<tempList.size(); j++){
+            for(int j=0; j<totalCourse; j++){
                 if(visited[j] == 2){
                     if(tempList.get(j).timeSlot == parentTimeSlot) {
-                        //System.out.println("subgraph node parents " + j);
                         tempList.get(j).timeSlot = RandomChildTimeSlot;
                     }
                     else {
-                        //System.out.println("subgraph node childs" + j);
                         tempList.get(j).timeSlot = parentTimeSlot;
                     }
                 }
             }
 
-
             // calculating penalty
             PenaltyCalculator calculator = new PenaltyCalculator(studentList, tempList, penType);
             double avg = calculator.getAvgUpdatedPenalty();
-            //System.out.println("intermediate penalty found " + avg);
-            if(avg < originalAvg){
+            if(avg < newAvg){
                 newAvg = avg;
                 courseList = new ArrayList<>(tempList);
             }else{
-//                tempList.clear();
-//                tempList = new ArrayList<>(courseList.size());
-//                for(Course c1: courseList){
-//                    Course c2 = new Course(c1);
-//                    tempList.add(c2);
-//                }
-                //System.out.println("temp " + tempList.size() + " og " + courseList.size());
                 for(int j=0; j<tempList.size(); j++){
                     if(visited[j] == 2){
                         if(tempList.get(j).timeSlot == parentTimeSlot) {
-                            //System.out.println("subgraph node parents " + j);
                             tempList.get(j).timeSlot = RandomChildTimeSlot;
                         }
                         else {
-                            //System.out.println("subgraph node childs" + j);
                             tempList.get(j).timeSlot = parentTimeSlot;
                         }
                     }
                 }
             }
             Arrays.fill(visited, 0);
-//            if(nodeCount == tolalCourse)
-//                break;
         }
 
     }
@@ -117,27 +89,76 @@ public class PerturbativeHeuristics {
         visited[c.id - 1] = 1;
         int parentColor = c.timeSlot;
         for(Integer i: c.conflictingCourses){
-            //visited[i] = 1;
             Course child = tempList.get(i);
             int childColor = child.timeSlot;
             if(childColor == alternatingColor && visited[i] == 0){
-                //child.timeSlot = alternatingColor;
-                //visited[i] = true;
                 dfs(child, parentColor);
             }
         }
-//        for(int i=0; i<c.conflictCount(); i++){
-//            List<Integer> temp = new ArrayList<>(c.conflictingCourses);
-//            int childColor = tempList.get(temp.get(i)).timeSlot;
-//            if(childColor == parentColor){
-//                tempList.get(i).timeSlot = alternatingColor;
-//                dfs(tempList.get(i), parentColor);
-//            }
-//        }
-//        System.out.println("skipped");
-//        System.out.println(tempList.size());
         visited[c.id - 1] = 2;
-        return;
+    }
+
+    public void PairSwap(){
+        int totalCourse = courseList.size();
+        Random random = new Random();
+
+        for(int i=0; i<1000; i++){
+            // 2 random nodes
+            int randomNumber = random.nextInt(totalCourse);
+            Course c1 = tempList.get(randomNumber);
+            int timeSlot1 = c1.timeSlot;
+
+            randomNumber = random.nextInt(totalCourse);
+            Course c2 = tempList.get(randomNumber);
+            int timeSlot2 = c2.timeSlot;
+
+            if(timeSlot1 == timeSlot2){
+                continue;
+            }
+
+            int flag = 0;
+            for(Integer j: c1.conflictingCourses){
+                Course child = tempList.get(j);
+                int childColor = child.timeSlot;
+                if (childColor == timeSlot2) {
+                    flag = 1;
+                    break;
+                }
+            }
+
+            if(flag == 1) continue;
+
+            for(Integer j: c2.conflictingCourses){
+                Course child = tempList.get(j);
+                int childColor = child.timeSlot;
+                if (childColor == timeSlot1) {
+                    flag = 1;
+                    break;
+                }
+            }
+
+            if(flag == 1) continue;
+
+            // color swap
+            c1.timeSlot = timeSlot2;
+            c2.timeSlot = timeSlot1;
+            // calculating penalty
+            PenaltyCalculator calculator = new PenaltyCalculator(studentList, tempList, penType);
+            double avg = calculator.getAvgUpdatedPenalty();
+            if(avg < newAvg){
+                newAvg = avg;
+                courseList = new ArrayList<>(tempList);
+                //System.out.println("imporved penalty found :" + newAvg);
+            }else{
+                c1.timeSlot = timeSlot1;
+                c2.timeSlot = timeSlot2;
+            }
+
+
+        }
+
+
+
     }
 
 }
